@@ -1,5 +1,5 @@
 {
-    "name": "ms-identity-react-c1s1",
+    "name": "apim-oauth-spa",
     "version": "0.1.0",
     "private": true,
     "dependencies": {

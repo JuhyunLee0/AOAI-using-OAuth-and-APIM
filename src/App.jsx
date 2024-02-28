@@ -24,12 +24,9 @@ const App = ({ instance }) => {
         token: '',
         expiresOn: '',
     });
-    const [apiResponse, setApiResponse] = useState('');
+    const [apiResponse, setApiResponse] = useState({});
 
-    const handleClick = async (param1, param2) => {
-        // Your async code here
-        console.log('doing stuff');
-
+    const handleClick = async () => {
         const activeAccount = instance.getActiveAccount();
 
         let tk = '';
@@ -37,7 +34,7 @@ const App = ({ instance }) => {
 
         if(activeAccount) {
             var request = {
-                scopes: ["User.Read"],
+                scopes: process.env.REACT_APP_OAUTH_SCOPE.split(','), // e.g. ["user.read"]
             };
 
             let tokenResponse = await instance.acquireTokenSilent(request);
@@ -56,7 +53,7 @@ const App = ({ instance }) => {
     const callingAPIM = async () => {
         const headers = {
             Accept: "application/json",
-            "Access-Control-Allow-Origin": "http://localhost:3000",
+            "Access-Control-Allow-Origin": process.env.REACT_APP_REDIRECT_URI,
             "Content-Type": "application/json",
             Authorization: `Bearer ${tokenObj.token}`,
             // "User-Agent": "any-name"
@@ -78,9 +75,10 @@ const App = ({ instance }) => {
             body: raw,
         };
 
+        let url = `${process.env.REACT_APP_APIM_BASE_ENDPOINT}/deployments/${process.env.REACT_APP_AOAI_DEPLOYMENT_ID}/chat/completions?api-version=${process.env.REACT_APP_AOAI_API_VERSION}`;
         let resp = null;
         try {
-            resp = await fetch("https://jhl-apim.azure-api.net/deployments/jh-chatgpt35turbo/chat/completions?api-version=2023-05-15", requestOptions);
+            resp = await fetch(url, requestOptions);
         } catch (error) {
             console.log('error', error);
             alert('Error calling API');
@@ -91,17 +89,13 @@ const App = ({ instance }) => {
         if(resp.ok) {
             let data = await resp.json();
             console.log(data);
-            setApiResponse(JSON.stringify(data, null, 2));
+            setApiResponse(data);
         }else{
             console.log('error', resp);
-            setApiResponse(resp.status);
+            setApiResponse(resp);
         }
         
     };
-
-
-
-
 
     const MainContent = () => {
         /**
@@ -123,7 +117,7 @@ const App = ({ instance }) => {
                     {activeAccount ? (
                         <Container>
                             <hr/>
-                            <button onClick={() => handleClick(instance)}>Get Access Token</button>
+                            <button onClick={() => handleClick()}>Get Access Token</button>
                             <div>
                                 <p>
                                     Expires: <br/> {tokenObj.expiresOn}<br/><br/>
@@ -132,7 +126,7 @@ const App = ({ instance }) => {
                                 <button onClick={() => callingAPIM()}>Call AOAI via APIM</button>
                                 <div>
                                     <p>API Response:</p>
-                                    <p>{apiResponse}</p>
+                                    <div><pre style={{textAlign: "left"}}>{JSON.stringify(apiResponse, null, 2) }</pre></div>
                                 </div>
                             </div>
                             <hr/>
@@ -142,7 +136,7 @@ const App = ({ instance }) => {
                     ) : null}
                 </AuthenticatedTemplate>
                 <UnauthenticatedTemplate>
-                    <h5 className="card-title">Please sign-in to see your profile information.</h5>
+                    <h5 className="card-title">Please sign-in to see token information.</h5>
                 </UnauthenticatedTemplate>
             </div>
         );
