@@ -1,11 +1,13 @@
+import { memo } from 'react';
 import { Table } from 'react-bootstrap';
 import { createClaimsTable } from '../utils/claimUtils';
 
 import '../styles/App.css';
 
-export const IdTokenData = (props) => {
-    console.log('props', props);
-    const tokenClaims = createClaimsTable(props.idTokenClaims);
+const IdTokenData = (props) => {
+    console.log('idTokenClaims start', props);
+    const activeAccount = props.activeAccount;
+    const tokenClaims = createClaimsTable(activeAccount.idTokenClaims);
 
     const tableRow = Object.keys(tokenClaims).map((key, index) => {
         return (
@@ -44,3 +46,5 @@ export const IdTokenData = (props) => {
         </>
     );
 };
+
+export default memo(IdTokenData);
