@@ -17,7 +17,7 @@ https://learn.microsoft.com/en-us/graph/toolkit/get-started/add-aad-app-registra
         * expose an API and add custom scope to furthur configure JWT
 
 2. Follow these stepts to set up Azure API Mangement instance with Azure OpenAI\
-https://learn.microsoft.com/en-us/graph/toolkit/get-started/add-aad-app-registration#add-new-application-registration-in-microsoft-entra-id
+https://learn.microsoft.com/en-us/semantic-kernel/deploy/use-ai-apis-with-api-management#setup-azure-api-management-instance-with-azure-openai-api
 
 3. add these to the policy under apim\
     [<img src="./img/apim-policy.png" width="500"/>](apim-policy.png)
@@ -98,7 +98,7 @@ On Startup
 * sign in using the tenant account.
 * once logged in use the "Get Acceess Token" to generate the access token
     * keep in mind that token will expire when reaching the "Expires" time (typically an hour)
-* use the "Call AOAI via APIM" to call the AOAI endpoint thru APIM layer
+* use the Chatbox to call the AOAI endpoint thru APIM layer
 
 ------------
 Cloned and modified from sample code
