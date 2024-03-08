@@ -4,6 +4,8 @@ apim-oauth-spa
 Single page Demo Application using react.\
 Connects to a tenant via Microsoft Entra ID using msal.js\
 Generates JWT token and calls Azure APIM endpoint, which will be proxy to Azure OpenAI API\
+Msal library is available in multiple programming languages, such as C#, Javascript, Python\
+https://learn.microsoft.com/en-us/entra/msal/
 
 Before Starting
 ------------
