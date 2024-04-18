@@ -19,10 +19,18 @@ import './styles/App.css';
  * PublicClientApplication instance via context as well as all hooks and components provided by msal-react. For more, visit:
  * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/getting-started.md
  */
-const App = ({ instance }) => {
+const App = ({ instance }, msalToken) => {
   const [tokenObj, setTokenObj] = useState(null);
 
   const generateToken = async () => {
+    console.log('instance', instance);
+    if (window.top.msaltoken) {
+        console.log('sending temp token');
+        setTokenObj({token: window.top.msaltoken, expiresOn: 'Temporary Token'});
+        return;
+    }
+
+    console.log('instance', instance);
     const activeAccount = instance.getActiveAccount();
 
     let tk = '';
