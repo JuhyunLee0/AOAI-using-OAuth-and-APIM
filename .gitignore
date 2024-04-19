@@ -1,3 +1,7 @@
-/node_modules
-.local.env
-.env
+react-app/node_modules/
+react-app/.local.env
+react-app/.env
+react-app/
+
+function-app/node_modules/
+function-app/.local.settings.json
