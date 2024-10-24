@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "applicationinsights": "^2.9.5"
+    "applicationinsights": "^2.9.5",
+    "pg": "^8.11.5"
   }
 }

@@ -4,8 +4,8 @@
       "type": "eventHubTrigger",
       "name": "eventHubMessages",
       "direction": "in",
-      "eventHubName": "jhl-apim-eventhub",
-      "connection": "jhl-eventhub_RootManageSharedAccessKey_EVENTHUB",
+      "eventHubName": "apim-eventhub",
+      "connection": "custom-eventhub_RootManageSharedAccessKey_EVENTHUB",
       "cardinality": "many",
       "consumerGroup": "$Default",
       "dataType": "string"

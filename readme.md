@@ -10,98 +10,83 @@ https://learn.microsoft.com/en-us/entra/msal/
 Before Starting
 ------------
 
-1. Follow these steps to create a MS Entra ID App to generate Oauth flow\
-https://learn.microsoft.com/en-us/graph/toolkit/get-started/add-aad-app-registration#add-new-application-registration-in-microsoft-entra-id
+### 1. MicroSoft EntraID Application
+* Follow steps [here](https://learn.microsoft.com/en-us/graph/toolkit/get-started/add-aad-app-registration#add-new-application-registration-in-microsoft-entra-id) to create a MS Entra ID App to generate Oauth flow
     * if you are running this locally, make sure to add a plaform under Authenication page.
         * single-page application
         * add http://localhost:3000 and http://localhost:3000/redirect to the redirect URIs
-    * these are optional steps
-        * expose an API and add custom scope to furthur configure JWT
 
-2. Follow these stepts to set up Azure API Mangement instance with Azure OpenAI\
-https://learn.microsoft.com/en-us/semantic-kernel/deploy/use-ai-apis-with-api-management#setup-azure-api-management-instance-with-azure-openai-api
+        * [<img src="./readme-img/spa-adding.png" width="500"/>](spa-adding.png)
+    * [optional] you can add apim scope to the jwt scope using web api scoping
+        * expose an API and add custom scope to furthur configure JWT [here](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-configure-app-expose-web-apis#add-a-scope)
+        * you can use this custom scope to add to JWT for allowing APIM access.
 
-3. add these to the policy under apim\
-    [<img src="./img/apim-policy.png" width="500"/>](apim-policy.png)
+### 2. Azure OpenAI Service
+* create and deploy Azure OpenAI services to be used with the API managemnet service
 
-```xml
-<inbound>
-    //other policy
-    <base />
-    <validate-jwt header-name="Authorization" failed-validation-httpcode="401" failed-validation-error-message="Unauthorized. Access token is missing or invalid.">
-        <openid-config url="https://login.microsoftonline.com/{aad-tenant}/v2.0/.well-known/openid-configuration" />
-        <audiences>
-            <audience>{audience-value - (ex: guid)}</audience>
-        </audiences>
-        <issuers>
-            <issuer>{issuer-value - (ex: https://login.microsoftonline.com/{tenant id}/v2.0)}</issuer>
-        </issuers>
-    </validate-jwt>
-    <set-header name="Authorization" exists-action="delete" />
-    <set-header name="api-key" exists-action="append">
-        <value>{{azure-openai-key}}</value>
-    </set-header>
-    <cors allow-credentials="false">
-        <allowed-origins>
-            <origin>*</origin>
-        </allowed-origins>
-        <allowed-methods preflight-result-max-age="300">
-            <method>GET</method>
-            <method>POST</method>
-            <method>OPTIONS</method>
-            <method>PUT</method>
-            <method>PATCH</method>
-        </allowed-methods>
-        <allowed-headers>
-            <header>*</header>
-        </allowed-headers>
-        <expose-headers>
-            <header>*</header>
-        </expose-headers>
-    </cors>
-    // other policy
-</inbound>
-```
+### 3. Azure API Management
+* create the Azure API Management service, details of the steps [here](https://learn.microsoft.com/en-us/azure/api-management/get-started-create-service-instance)
+    * download the Azure OpenAI reference and import it to the API Management Services
+    * [how to import Azure OpenAI to API Management](https://learn.microsoft.com/en-us/semantic-kernel/deploy/use-ai-apis-with-api-management#setup-azure-api-management-instance-with-azure-openai-api)
 
-4. install Node.js\
-https://nodejs.org/en/download/
+### 4. Azure EventHub
+* create an Azure EventHub to allow logging of usage for API Management
+* create a event hub with the name correctly
+* use Azure cli to create an event-logger on apim services.
+    * [<img src="./readme-img/eventhub-cli-create.png" width="500"/>](eventhub-cli-create.png)
+    * ```cli
+        # API Management service-specific details
+        $apimServiceName = "YOUR_APIM_SERVICE_NAME"
+        $resourceGroupName = "YOUR_RESOURCE_GROUP_NAME"
+        $apimLoggerID = "YOUR_LOGGER_NAME_FOR_APIM"
+        $eventHubName = "YOUR_EVENT_HUB_NAME"
+        $eventHubConnectionString = "YOUR_EVENT_HUB_CONNECTION_STRING"
+        $loggerDescription = "Event hub logger with connection string"
 
-5. Install all Packages
-```
-npm install
-```
+        # Create logger
+        $context = New-AzApiManagementContext -ResourceGroupName $resourceGroupName -ServiceName $apimServiceName
+        New-AzApiManagementLogger -Context $context -LoggerId $apimLoggerID -Name $eventHubName -ConnectionString $eventHubConnectionString -Description $loggerDescription
+        ```
+    * you can view the existing eventhub loggers by running this command 
+        ```cli
+            $apimContext = New-AzApiManagementContext -ResourceGroupName $resourceGroupName -ServiceName $apimServiceName
+            Get-AzApiManagementLogger -Context $apimContext
+        ```
+### 5. [Optional] Azure Function App
+* create Azure function app with trigger on eventhub to view and process usage logs
 
-6. Populate the .env file
-```
-REACT_APP_OAUTH_CLIENT_ID=<APP ID FROM ENTRA ID APP>
-REACT_APP_OAUTH_TENANT_ID=<TENANT ID OF THE ENTRA ID APP>
-REACT_APP_OAUTH_SCOPE=<SCOPE OF THE TOKEN COMMA SEPERATED> //ex."User.Read,api://1234-5678-910112/apim.access"
-REACT_APP_REDIRECT_URI="http://localhost:3000"
-REACT_APP_APIM_BASE_ENDPOINT=<APIM ENDPOINT>
-REACT_APP_AOAI_DEPLOYMENT_ID=<AZURE OPENAI DEPLOYMENT NAME>
-REACT_APP_AOAI_API_VERSION=<AZURE OPENAI API VERSION>
-```
+### 6. Update APIM Policy
+* [<img src="./readme-img/edit-policy.png" width="500"/>](edit-policy.png)
+* the policy should look similar to [this](./readme-img/policy-example.xml) - readme-img/policy-example.xml
 
-Running the App
+### 7. Setting Up Local React Application
+* install Node.js [here](https://nodejs.org/en/download)
+* change the working directory ```cd react-app```
+* install required packages ```npm install```
+* fill out the env variable inside .env
+    * ```
+        REACT_APP_OAUTH_CLIENT_ID=<APP ID FROM ENTRA ID APP>
+        REACT_APP_OAUTH_TENANT_ID=<TENANT ID OF THE ENTRA ID APP>
+        REACT_APP_OAUTH_SCOPE=<SCOPE OF THE TOKEN COMMA SEPERATED> //ex."User.Read,api://1234-5678-910112/apim.access"
+        REACT_APP_REDIRECT_URI="http://localhost:3000"
+        REACT_APP_APIM_BASE_ENDPOINT=<APIM ENDPOINT>
+        REACT_APP_AOAI_DEPLOYMENT_ID=<AZURE OPENAI DEPLOYMENT NAME>
+        REACT_APP_AOAI_API_VERSION=<AZURE OPENAI API VERSION>
+        ```
+
+Starting
 ------------
-
-* run the app
-```
-npm start
-```
-
-On Startup
-------------
+* run the react application ```npm start```
 * Go to http://localhost:3000
-
 * use the "Sign in" button on the top right
     * perferrably use the "Sign in using Redirect"\
-[<img src="./img/spa-login.png" width="500"/>](spa-login.png)
+[<img src="./readme-img/spa-login.png" width="500"/>](spa-login.png)
 * sign in using the tenant account.
 * once logged in use the "Get Acceess Token" to generate the access token
     * keep in mind that token will expire when reaching the "Expires" time (typically an hour)
 * use the Chatbox to call the AOAI endpoint thru APIM layer
 
 ------------
-Cloned and modified from sample code
-https://learn.microsoft.com/en-us/samples/azure-samples/ms-identity-ciam-javascript-tutorial/ms-identity-ciam-javascript-tutorial-1-sign-in-react/
+##### React application is modified version of microsoft sample 
+* https://learn.microsoft.com/en-us/samples/azure-samples/ms-identity-ciam-javascript-tutorial/ms-identity-ciam-javascript-tutorial-1-sign-in-react/
+##### This is not intended to be used inside a production environment, local testing only.
